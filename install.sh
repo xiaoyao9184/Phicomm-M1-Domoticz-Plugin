@@ -312,7 +312,8 @@ installDomoticzPlugin() {
 		if echo "${choices[@]}" | grep -w "$d" &>/dev/null; then
 			echo -n ":::     Move plugin ${d}..."
 			cp -a $d "${Dest_folder}/plugins/"
-			chown "${Current_user}":"${Current_user}" "${Dest_folder}/plugins/${d}"
+			chown -R "${Current_user}":"${Current_user}" "${Dest_folder}/plugins/${d}"
+			chmod +x "${Dest_folder}/plugins/${d}plugin.py"
 			echo " done!"
 		fi
     done
