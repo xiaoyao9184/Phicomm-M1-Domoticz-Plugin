@@ -19,7 +19,7 @@
                 <option label="Debug(Attach by rpdb)" value="rpdb"/>
             </options>
         </param>
-        <param field="Mode2" label="repeatTime(s)" width="30px" required="true" default="0"/>
+        <param field="Mode2" label="Repeat Time(s)" width="30px" required="true" default="30"/>
         <param field="Mode3" label="Remote IP" width="100px" default="47.102.38.171"/>
         </params>
 </plugin>
@@ -89,15 +89,16 @@ class plugin:
         self.serverConn = Domoticz.Connection(Name="Data Connection", Transport="TCP/IP", Protocol="None", Port="9000")
         self.serverConn.Listen()
 
-        # Client Connection
-        self.proxyConn = Domoticz.Connection(Name="Proxy Connection", Transport="TCP/IP", Protocol="None", Address=self.remoteIP, Port="9000")
-        self.proxyConn.Connect()
+        # Client Connection 
+        if self.remoteIP:
+            self.proxyConn = Domoticz.Connection(Name="Proxy Connection", Transport="TCP/IP", Protocol="None", Address=self.remoteIP, Port="9000")
+            self.proxyConn.Connect()
 
     def onStop(self):
         Domoticz.Log("onStop called")
         if self.serverConn.Connected():
             self.serverConn.Disconnect()
-        if self.proxyConn.Connected():
+        if self.proxyConn is not None and self.proxyConn.Connected():
             self.proxyConn.Disconnect()
 
     def onConnect(self, Connection, Status, Description):
@@ -291,8 +292,8 @@ class plugin:
             device = self.getExistDevice(deviceIdBrightness)
             value = jsonData['brightness']
             level = self.getKeyByValue(self.dict_brightness,value)
-            self.updateDevice(device,2,level)        
-    
+            self.updateDevice(device,2,level)
+
     # Update device into DB
     def updateDevice(self, device, nValue, sValue):
         if device.nValue != nValue or device.sValue != sValue:
@@ -343,7 +344,7 @@ class plugin:
             jsonString = json.dumps(msg)
             bytesCommand = self.generateJsonData(mac,2,jsonString)
             self.clientConns[clientId].Send(bytesCommand)
-    
+
 
     def generateClientIdentity(self, ip):
         identity = ip.replace('.','')
@@ -385,7 +386,7 @@ class plugin:
         if mac_reverse[::-1] != mac:
             Domoticz.Log("uncommon mac, usually mac_reverse and mac are same, \
                 but this time it is: mac_reverse: " + mac_reverse.hex() + " and mac:" + mac.hex() )
-    
+
         # length
         lengthArray = reader.read(2)
         length = struct.unpack('>H',lengthArray)[0]
@@ -505,7 +506,7 @@ class plugin:
 
     def getKeyByValue(self, target, value):
         return list(target.keys())[list(target.values()).index(value)]
-            
+
 
 global _plugin
 _plugin = plugin()
